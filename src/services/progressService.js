@@ -7,32 +7,7 @@ const getApperClient = () => {
   });
 };
 
-// Create a new progress record
-export const createProgressRecord = async (progressData) => {
-  try {
-    const apperClient = getApperClient();
-    const response = await apperClient.createRecord("progress", {
-      records: [{
-        Name: `${progressData.userId} - ${progressData.courseId} - ${progressData.activityTitle}`,
-        userId: progressData.userId,
-        courseId: progressData.courseId,
-        completionPercentage: progressData.completionPercentage || 0,
-        minutesStudied: progressData.minutesStudied || 0,
-        activityType: progressData.activityType,
-        activityTitle: progressData.activityTitle,
-        activityDate: new Date().toISOString(),
-        quizScore: progressData.quizScore
-      }]
-    });
-    
-    return response.data;
-  } catch (error) {
-    console.error("Error creating progress record:", error);
-    throw error;
-  }
-};
-
-// Fetch progress for a specific user
+// Fetch progress records for a specific user
 export const fetchUserProgress = async (userId) => {
   try {
     const apperClient = getApperClient();
@@ -56,14 +31,18 @@ export const fetchUserProgress = async (userId) => {
     const response = await apperClient.fetchRecords("progress", params);
     return response.data || [];
   } catch (error) {
-    console.error(`Error fetching progress for user ${userId}:`, error);
+    console.error("Error fetching user progress:", error);
     throw error;
   }
 };
 
-// Fetch progress for a specific course and user
+// Fetch progress records for a specific user and course
 export const fetchUserCourseProgress = async (userId, courseId) => {
   try {
+    if (!userId || !courseId) {
+      throw new Error("User ID and Course ID are required");
+    }
+    
     const apperClient = getApperClient();
     
     const params = {
@@ -95,16 +74,16 @@ export const fetchUserCourseProgress = async (userId, courseId) => {
   }
 };
 
-// Update a progress record
-export const updateProgress = async (progressId, progressData) => {
+// Create a new progress record
+export const createProgressRecord = async (progressData) => {
   try {
     const apperClient = getApperClient();
-    const response = await apperClient.updateRecord("progress", {
-      records: [{ Id: progressId, ...progressData }]
+    const response = await apperClient.createRecord("progress", {
+      records: [progressData]
     });
-    return response.data;
+    return response.results?.[0]?.data || null;
   } catch (error) {
-    console.error(`Error updating progress with ID ${progressId}:`, error);
+    console.error("Error creating progress record:", error);
     throw error;
   }
 };

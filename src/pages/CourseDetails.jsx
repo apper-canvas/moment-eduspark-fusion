@@ -45,13 +45,12 @@ const CourseDetails = () => {
             await createProgressRecord({
               userId: user.Id,
               courseId: courseId,
-              completionPercentage: 0,
-              minutesStudied: 1,
-              activityType: 'course',
-              activityTitle: `Viewed ${courseData.title}`
+              completionPercentage: 0, 
+              minutesStudied: 1, 
+              activityType: "course", 
+              activityTitle: `Viewed ${courseData.title}`,
+              activityDate: new Date().toISOString()
             });
-            
-            // Load user progress for this course
             const progressData = await fetchUserCourseProgress(user.Id, courseId);
             setProgress(progressData);
           } catch (err) {
@@ -61,9 +60,9 @@ const CourseDetails = () => {
         }
       } catch (err) {
         setError('Failed to load course details');
-        toast.error('Failed to load course details');
-        console.error('Error loading course details:', err.message || 'Unknown error occurred');
-      } finally {
+        toast.error(`Error loading course details: ${err.message || 'Unknown error'}`);
+        console.error('Error loading course details:', err);
+      } finally { 
         setLoading(false);
       }
     };
@@ -176,18 +175,20 @@ const CourseDetails = () => {
             
             <p className="mt-4 text-surface-600 dark:text-surface-300">{course.fullDescription || course.description}</p>
             
-            {progress && progress.length > 0 && (
+            {progress && Array.isArray(progress) && progress.length > 0 && (
               <div className="mt-4 p-3 bg-primary-100 dark:bg-primary-900/20 rounded-lg">
                 <h4 className="font-medium text-primary">Your Progress</h4>
                 <div className="mt-1 w-full bg-surface-200 dark:bg-surface-700 rounded-full h-2.5">
                   <div 
                     className="bg-primary h-2.5 rounded-full" 
-                    style={{ width: `${Math.max(...progress.map(p => p.completionPercentage || 0))}%` }}
+                    style={{ width: `${Math.max(...progress.map(p => Number(p.completionPercentage) || 0))}%` }}
                   ></div>
                 </div>
-                <p className="text-xs mt-1 text-surface-600 dark:text-surface-400">
-                  Last activity: {new Date(progress[0].activityDate).toLocaleDateString()}
-                </p>
+                {progress[0]?.activityDate && (
+                  <p className="text-xs mt-1 text-surface-600 dark:text-surface-400">
+                    Last activity: {new Date(progress[0].activityDate).toLocaleDateString()}
+                  </p>
+                )}
               </div>
             )}
             
