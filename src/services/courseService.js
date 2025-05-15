@@ -69,18 +69,20 @@ export const fetchCourseById = async (courseId) => {
 export const createCourse = async (courseData) => {
   try {
     const apperClient = getApperClient();
-    
+    // Create a properly structured record for Apper
     // Create record with proper table format
     const record = {
-      ...courseData,
+      Name: courseData.title || courseData.Name, // Ensure Name field is set
+      IsDeleted: false,
+      InSandbox: false
       Name: courseData.title || courseData.Name // Ensure Name field is set
     };
     
-    const response = await apperClient.createRecord("course", { 
+      records: [record]
       records: [courseData]
     });
     
-    if (response && response.results && response.results.length > 0) {
+      return response.results[0].data || response.results[0];
       return response.results[0].data;
     }
     return response;
