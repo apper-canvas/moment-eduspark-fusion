@@ -1,184 +1,151 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Chart from 'react-apexcharts';
-import { format } from 'date-fns';
+import { motion } from 'framer-motion';
 
-const ProgressChart = ({ type, data, title, height = 350 }) => {
-  // Helper function to validate date objects
-  const isValidDate = (value) => {
-    if (!value) return false;
-    
-    const date = value instanceof Date ? value : new Date(value);
-    
-    return date instanceof Date && !isNaN(date.getTime());
-  };
-  
-  const getChartOptions = () => {
-    const baseOptions = {
-      chart: {
-        fontFamily: 'Inter, sans-serif',
-        toolbar: {
-          show: false,
-        },
-        zoom: {
-          enabled: false,
-        },
-      },
-      theme: {
-        mode: document.documentElement.classList.contains('dark') ? 'dark' : 'light',
-      },
-      colors: ['#4F46E5', '#06B6D4', '#F97316'],
-      tooltip: {
-        enabled: true,
-        theme: document.documentElement.classList.contains('dark') ? 'dark' : 'light',
-      },
-      title: {
-        text: title,
-        align: 'left',
-        style: {
-          fontSize: '16px',
-          fontWeight: 'bold',
-          fontFamily: 'Inter, sans-serif',
-          color: document.documentElement.classList.contains('dark') ? '#f1f5f9' : '#0f172a'
-        }
-      }
-    };
+const ProgressChart = ({ type, data, title }) => {
+  const [options, setOptions] = useState({});
+  const [series, setSeries] = useState([]);
+  const [chartType, setChartType] = useState('line');
 
+  useEffect(() => {
+    const { categories, series: dataSeries, yTitle, tooltipSuffix } = data || {};
+    
+    // For radial chart (single value), we handle it differently
     if (type === 'radial') {
-      return {
-        ...baseOptions,
+      setChartType('radialBar');
+      setSeries(Array.isArray(data) ? data : [0]);
+      
+      setOptions({
+        chart: {
+          type: 'radialBar',
+          height: 280,
+          toolbar: {
+            show: false
+          }
+        },
+        colors: ['#4F46E5'],
         plotOptions: {
           radialBar: {
+            startAngle: -135,
+            endAngle: 135,
             hollow: {
-              size: '70%',
+              margin: 15,
+              size: '70%'
+            },
+            track: {
+              background: '#e2e8f0',
+              strokeWidth: '97%',
+              margin: 5,
+              dropShadow: {
+                enabled: false
+              }
             },
             dataLabels: {
               name: {
-                show: false,
+                show: false
               },
               value: {
-                fontSize: '22px',
-                fontWeight: '600',
+                color: '#4F46E5',
+                fontSize: '30px',
+                fontWeight: 'bold',
                 formatter: function(val) {
                   return val + '%';
                 }
-              },
-              total: {
-                show: true,
-                label: 'Completion',
-                formatter: function() {
-                  return data[0] + '%';
-                }
               }
-            },
-            track: {
-              background: document.documentElement.classList.contains('dark') ? '#334155' : '#e2e8f0',
             }
           }
         },
-        labels: ['Completion'],
-      };
-    }
-
-    if (type === 'bar') {
-      return {
-        ...baseOptions,
-        plotOptions: {
-          bar: {
-            horizontal: false,
-            columnWidth: '55%',
-            borderRadius: 4,
-          },
-        },
-        dataLabels: {
-          enabled: false,
+        fill: {
+          type: 'gradient',
+          gradient: {
+            shade: 'dark',
+            type: 'horizontal',
+            shadeIntensity: 0.5,
+            gradientToColors: ['#06B6D4'],
+            stops: [0, 100]
+          }
         },
         stroke: {
-          show: true,
-          width: 2,
-          colors: ['transparent'],
+          lineCap: 'round'
+        },
+        labels: []
+      });
+    } 
+    // Line chart
+    else if (type === 'line') {
+      setChartType('line');
+      setSeries(dataSeries || []);
+      
+      setOptions({
+        chart: {
+          height: 280,
+          type: 'line',
+          dropShadow: {
+            enabled: true,
+            color: '#000',
+            top: 18,
+            left: 7,
+            blur: 10,
+            opacity: 0.05
+          },
+          toolbar: {
+            show: false
+          },
+          fontFamily: 'Inter, sans-serif'
+        },
+        colors: ['#4F46E5', '#06B6D4', '#F97316'],
+        dataLabels: {
+          enabled: false
+        },
+        stroke: {
+          curve: 'smooth',
+          width: 3
+        },
+        grid: {
+          borderColor: '#e2e8f0',
+          row: {
+            colors: ['#f8fafc', 'transparent'],
+            opacity: 0.1
+          }
+        },
+        markers: {
+          size: 4
         },
         xaxis: {
-          categories: data.categories,
+          categories: categories || [],
+          labels: {
+            style: {
+              fontFamily: 'Inter, sans-serif'
+            }
+          }
         },
         yaxis: {
           title: {
-            text: data.yTitle || '',
-          },
-        },
-        fill: {
-          opacity: 1,
+            text: yTitle || '',
+            style: {
+              fontFamily: 'Inter, sans-serif'
+            }
+          }
         },
         tooltip: {
           y: {
             formatter: function(val) {
-              return val + (data.tooltipSuffix || '');
-            }
-          }
-        }
-      };
-    }
-
-    if (type === 'line') {
-      return {
-        ...baseOptions,
-        stroke: {
-          curve: 'smooth',
-          width: 3,
-        },
-        xaxis: {
-          categories: data.categories,
-          labels: {
-            formatter: function(value) {
-              try {
-                // Check if value is a valid date or can be converted to one
-                if (isValidDate(value)) {
-                  const date = value instanceof Date ? value : new Date(value);
-                  return format(date, 'MMM d');
-                }
-                // Fall back to a simpler representation if not a valid date
-                return String(value).substring(0, 10);
-              } catch (error) {
-                return String(value).substring(0, 10);
-              }
+              return val + (tooltipSuffix || '');
             }
           }
         },
-        yaxis: {
-          title: {
-            text: data.yTitle || '',
-          },
-        },
-        markers: {
-          size: 4,
-          strokeWidth: 0,
-        },
-        grid: {
-          borderColor: document.documentElement.classList.contains('dark') ? '#334155' : '#e2e8f0',
+        theme: {
+          mode: 'light'
         }
-      };
+      });
     }
-
-    return baseOptions;
-  };
-
-  const getChartSeries = () => {
-    if (type === 'radial') {
-      return [data[0]];
-    }
-    
-    return data.series;
-  };
+  }, [type, data]);
 
   return (
-    <div className="card h-full">
-      <Chart
-        options={getChartOptions()}
-        series={getChartSeries()}
-        type={type === 'radial' ? 'radialBar' : type}
-        height={height}
-        width="100%"
-      />
-    </div>
+    <motion.div initial={{opacity: 0}} animate={{opacity: 1}} className="card">
+      <h3 className="text-lg font-semibold mb-4">{title}</h3>
+      {Object.keys(options).length > 0 && <Chart options={options} series={series} type={chartType} height={280} />}
+    </motion.div>
   );
 };
 

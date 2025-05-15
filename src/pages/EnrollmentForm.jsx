@@ -3,6 +3,10 @@ import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import getIcon from '../utils/iconUtils';
+import { useSelector } from 'react-redux';
+import { fetchCourseById } from '../services/courseService';
+import { createEnrollment } from '../services/enrollmentService';
+import { createProgressRecord } from '../services/progressService';
 
 // Icons
 const ArrowLeftIcon = getIcon('ArrowLeft');
@@ -17,6 +21,9 @@ const EnrollmentForm = () => {
   const navigate = useNavigate();
   const [course, setCourse] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState(null);
+  const user = useSelector((state) => state.user.user);
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -30,53 +37,34 @@ const EnrollmentForm = () => {
   });
   const [errors, setErrors] = useState({});
 
-  // Mock course data (same as in CourseDetails.jsx)
-  const coursesData = [
-    {
-      id: 1,
-      title: "Introduction to JavaScript",
-      instructor: "Sarah Johnson",
-      description: "Learn the fundamentals of JavaScript programming and build interactive web applications.",
-      level: "Beginner",
-      duration: "8 weeks",
-      price: "$99.99"
-    },
-    {
-      id: 2,
-      title: "Python for Data Science",
-      instructor: "Michael Chen",
-      description: "Explore data analysis, visualization, and machine learning using Python.",
-      level: "Intermediate",
-      duration: "10 weeks",
-      price: "$129.99"
-    },
-    {
-      id: 3,
-      title: "UI/UX Design Principles",
-      instructor: "Elena Rodriguez",
-      description: "Master the principles of effective user interface and experience design.",
-      level: "All Levels",
-      duration: "6 weeks",
-      price: "$89.99"
-    }
-  ];
-
   useEffect(() => {
-    // Simulate API fetch with a short delay
-    setLoading(true);
-    const timer = setTimeout(() => {
-      const foundCourse = coursesData.find(c => c.id === parseInt(courseId));
-      if (foundCourse) {
-        setCourse(foundCourse);
-      } else {
-        toast.error("Course not found!");
-        navigate('/');
+    const loadCourse = async () => {
+      try {
+        setLoading(true);
+        const courseData = await fetchCourseById(courseId);
+        if (!courseData) {
+          setError('Course not found');
+          toast.error('Course not found');
+          navigate('/');
+          return;
+        }
+        setCourse(courseData);
+        
+        // If user is logged in, pre-fill the form with their information
+        if (user && user.emailAddress) {
+          setFormData(prev => ({ ...prev, email: user.emailAddress, firstName: user.firstName || '', lastName: user.lastName || '' }));
+        }
+      } catch (err) {
+        setError('Failed to load course details');
+        toast.error('Failed to load course details');
+        console.error('Error loading course:', err);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
-    }, 500);
-    
-    return () => clearTimeout(timer);
-  }, [courseId, navigate]);
+    };
+
+    loadCourse();
+  }, [courseId, navigate, user]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -113,16 +101,44 @@ const EnrollmentForm = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
     if (validateForm()) {
-      // Simulate form submission
-      toast.success(`You've been enrolled in ${course.title}!`);
-      // Redirect to course details after a short delay
-      setTimeout(() => {
-        navigate(`/course/${courseId}`);
-      }, 2000);
+      try {
+        setSubmitting(true);
+        
+        // Create enrollment record
+        const enrollmentData = {
+          ...formData,
+          courseId: parseInt(courseId)
+        };
+        
+        const enrollmentResult = await createEnrollment(enrollmentData);
+        
+        // Create progress record to track enrollment
+        if (user && user.Id) {
+          await createProgressRecord({
+            userId: user.Id,
+            courseId: parseInt(courseId),
+            completionPercentage: 0,
+            minutesStudied: 0,
+            activityType: 'course',
+            activityTitle: `Enrolled in ${course.title}`
+          });
+        }
+        
+        toast.success(`You've been enrolled in ${course.title}!`);
+        // Redirect to course details after a short delay
+        setTimeout(() => {
+          navigate(`/course/${courseId}`);
+        }, 2000);
+      } catch (error) {
+        toast.error('Enrollment failed. Please try again.');
+        console.error('Enrollment error:', error);
+      } finally {
+        setSubmitting(false);
+      }
     } else {
       toast.error('Please correct the errors in the form');
     }
@@ -136,7 +152,7 @@ const EnrollmentForm = () => {
     );
   }
 
-  if (!course) {
+  if (!course || error) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="text-center">
@@ -389,8 +405,9 @@ const EnrollmentForm = () => {
               <button
                 type="submit"
                 className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors"
+                disabled={submitting}
               >
-                Complete Enrollment
+                {submitting ? 'Processing...' : 'Complete Enrollment'}
               </button>
             </div>
           </form>

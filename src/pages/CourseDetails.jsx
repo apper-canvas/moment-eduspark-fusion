@@ -1,8 +1,12 @@
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
+import { useSelector } from 'react-redux';
 import getIcon from '../utils/iconUtils';
 import { toast } from 'react-toastify';
+import { fetchCourseById } from '../services/courseService';
+import { fetchUserCourseProgress } from '../services/progressService';
+import { createProgressRecord } from '../services/progressService';
 
 // Icons
 const ArrowLeftIcon = getIcon('ArrowLeft');
@@ -16,23 +20,58 @@ const CourseDetails = () => {
   const { courseId } = useParams();
   const [course, setCourse] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [progress, setProgress] = useState(null);
+  const [error, setError] = useState(null);
+  
+  const user = useSelector((state) => state.user.user);
 
-  // Mock course data with extended details
-  const coursesData = [
-    {
-      id: 1,
-      title: "Introduction to JavaScript",
-      instructor: "Sarah Johnson",
-      instructorRole: "Senior Web Developer",
-      instructorBio: "Sarah has 10+ years of experience in web development and has taught over 50,000 students online.",
-      description: "Learn the fundamentals of JavaScript programming and build interactive web applications.",
-      fullDescription: "This comprehensive course covers JavaScript from the ground up. You'll learn variables, data types, functions, objects, DOM manipulation, event handling, and modern ES6+ features. By the end, you'll be able to build fully interactive web applications and understand the core concepts that make JavaScript the backbone of modern web development.",
-      level: "Beginner",
-      duration: "8 weeks",
-      lessons: 24,
-      rating: 4.8,
-      students: 12543,
-      image: "https://images.unsplash.com/photo-1517694712202-14dd9538aa97",
+  useEffect(() => {
+    const loadCourseAndProgress = async () => {
+      try {
+        setLoading(true);
+        
+        // Load course details
+        const courseData = await fetchCourseById(courseId);
+        if (!courseData) {
+          setError('Course not found');
+          toast.error('Course not found');
+          return;
+        }
+        setCourse(courseData);
+        
+        // Record that the user viewed this course
+        if (user && user.Id) {
+          try {
+            await createProgressRecord({
+              userId: user.Id,
+              courseId: courseId,
+              completionPercentage: 0,
+              minutesStudied: 1,
+              activityType: 'course',
+              activityTitle: `Viewed ${courseData.title}`
+            });
+            
+            // Load user progress for this course
+            const progressData = await fetchUserCourseProgress(user.Id, courseId);
+            setProgress(progressData);
+          } catch (err) {
+            console.error('Error recording progress:', err);
+            // Don't show error to user for this
+          }
+        }
+      } catch (err) {
+        setError('Failed to load course details');
+        toast.error('Failed to load course details');
+        console.error('Error loading course:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadCourseAndProgress();
+  }, [courseId, user]);
+
+  /* Removed mock data:
       topics: ["Variables & Data Types", "Functions & Objects", "DOM Manipulation", "Event Handling", "Asynchronous JavaScript", "ES6+ Features"],
       skills: ["Web Development", "Front-end Programming", "Interactive UI Creation"]
     },
@@ -70,23 +109,6 @@ const CourseDetails = () => {
       topics: ["User Research", "Wireframing", "Prototyping", "Visual Design", "Usability Testing", "Accessibility"],
       skills: ["Interface Design", "User Research", "Prototyping Tools"]
     }
-  ];
-
-  useEffect(() => {
-    // Simulate API fetch with a short delay
-    setLoading(true);
-    const timer = setTimeout(() => {
-      const foundCourse = coursesData.find(c => c.id === parseInt(courseId));
-      if (foundCourse) {
-        setCourse(foundCourse);
-      } else {
-        toast.error("Course not found!");
-      }
-      setLoading(false);
-    }, 500);
-    
-    return () => clearTimeout(timer);
-  }, [courseId]);
 
   if (loading) {
     return (
@@ -96,7 +118,7 @@ const CourseDetails = () => {
     );
   }
 
-  if (!course) {
+  if (!course || error) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="text-center">
@@ -126,7 +148,7 @@ const CourseDetails = () => {
       <div className="bg-white dark:bg-surface-800 rounded-xl shadow-md overflow-hidden">
         <div className="md:flex">
           <div className="md:flex-shrink-0 md:w-1/3">
-            <img className="h-48 w-full object-cover md:h-full" src={course.image} alt={course.title} />
+            <img className="h-48 w-full object-cover md:h-full" src={course.image || "https://images.unsplash.com/photo-1517694712202-14dd9538aa97"} alt={course.title} />
           </div>
           <div className="p-8 md:w-2/3">
             <div className="flex items-center">
@@ -137,7 +159,7 @@ const CourseDetails = () => {
               </div>
               <div className="ml-2 text-xs text-surface-500 dark:text-surface-400 flex items-center">
                 <UserIcon className="w-3 h-3 mr-1" />
-                {course.students.toLocaleString()} students
+                {course.students ? course.students.toLocaleString() : "10,000+"} students
               </div>
             </div>
             
@@ -153,33 +175,45 @@ const CourseDetails = () => {
             
             <p className="mt-4 text-surface-600 dark:text-surface-300">{course.fullDescription || course.description}</p>
             
+            {progress && progress.length > 0 && (
+              <div className="mt-4 p-3 bg-primary-100 dark:bg-primary-900/20 rounded-lg">
+                <h4 className="font-medium text-primary">Your Progress</h4>
+                <div className="mt-1 w-full bg-surface-200 dark:bg-surface-700 rounded-full h-2.5">
+                  <div 
+                    className="bg-primary h-2.5 rounded-full" 
+                    style={{ width: `${Math.max(...progress.map(p => p.completionPercentage || 0))}%` }}
+                  ></div>
+                </div>
+                <p className="text-xs mt-1 text-surface-600 dark:text-surface-400">
+                  Last activity: {new Date(progress[0].activityDate).toLocaleDateString()}
+                </p>
+              </div>
+            )}
+            
             <div className="mt-6 border-t border-surface-200 dark:border-surface-700 pt-4">
               <h3 className="font-semibold text-surface-900 dark:text-white mb-3">What you'll learn</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                {course.topics && course.topics.map((topic, index) => (
+                {course.topics ? course.topics.split(',').map((topic, index) => (
                   <div key={index} className="flex items-center text-sm text-surface-600 dark:text-surface-300">
                     <BookIcon className="w-4 h-4 mr-2 text-primary" />
-                    {topic}
+                    {topic.trim()}
                   </div>
-                ))}
+                )) : <p className="text-surface-500">Topics not available</p>}
               </div>
             </div>
             
             <div className="mt-6 border-t border-surface-200 dark:border-surface-700 pt-4">
               <h3 className="font-semibold text-surface-900 dark:text-white mb-3">Skills you'll gain</h3>
               <div className="flex flex-wrap gap-2">
-                {course.skills && course.skills.map((skill, index) => (
-                  <span key={index} className="bg-surface-100 dark:bg-surface-700 text-surface-800 dark:text-surface-300 text-xs px-3 py-1 rounded-full flex items-center">
-                    <TagIcon className="w-3 h-3 mr-1" />
-                    {skill}
-                  </span>
-                ))}
+                {course.skills ? course.skills.split(',').map((skill, index) => (
+                  <span key={index} className="bg-surface-100 dark:bg-surface-700 text-surface-800 dark:text-surface-300 text-xs px-3 py-1 rounded-full flex items-center"><TagIcon className="w-3 h-3 mr-1" />{skill.trim()}</span>
+                )) : <p className="text-surface-500">Skills not available</p>}
               </div>
             </div>
             
             <div className="mt-6 text-center">
               <Link 
-                to={`/enroll/${course.id}`}
+                to={`/enroll/${course.Id}`}
                 className="inline-flex px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary-600 transition-colors items-center justify-center mx-auto"
               ><AwardIcon className="w-5 h-5 mr-2" />
                 Enroll in This Course
