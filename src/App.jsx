@@ -8,6 +8,7 @@ import getIcon from './utils/iconUtils';
 import Home from './pages/Home';
 import NotFound from './pages/NotFound';
 import Progress from './pages/Progress';
+import EnrollmentForm from './pages/EnrollmentForm';
 import CourseDetails from './pages/CourseDetails';
 
 // Components
@@ -73,6 +74,7 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/progress" element={<Progress />} />
             <Route path="/course/:courseId" element={<CourseDetails />} />
+            <Route path="/enroll/:courseId" element={<EnrollmentForm />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AnimatePresence>

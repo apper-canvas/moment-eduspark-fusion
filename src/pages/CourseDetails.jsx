@@ -178,13 +178,12 @@ const CourseDetails = () => {
             </div>
             
             <div className="mt-6 text-center">
-              <button 
-                onClick={() => toast.success("You've been enrolled in this course!")}
-                className="px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary-600 transition-colors flex items-center justify-center mx-auto"
-              >
-                <AwardIcon className="w-5 h-5 mr-2" />
+              <Link 
+                to={`/enroll/${course.id}`}
+                className="inline-flex px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary-600 transition-colors items-center justify-center mx-auto"
+              ><AwardIcon className="w-5 h-5 mr-2" />
                 Enroll in This Course
-              </button>
+              </Link>
             </div>
           </div>
         </div>
