@@ -109,6 +109,7 @@ const CourseDetails = () => {
       topics: ["User Research", "Wireframing", "Prototyping", "Visual Design", "Usability Testing", "Accessibility"],
       skills: ["Interface Design", "User Research", "Prototyping Tools"]
     }
+  */
 
   if (loading) {
     return (
