@@ -317,11 +317,11 @@ function MainFeature({ categoryId }) {
                     </div>
                   </div>
                 </div>
-              {/* Progress overlay */}
-              <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-surface-200/60 dark:bg-surface-700/60">
-                <div className="h-full bg-primary" style={{ width: `${progress.overall}%` }}></div>
+                {/* Progress overlay */}
+                <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-surface-200/60 dark:bg-surface-700/60">
+                  <div className="h-full bg-primary" style={{ width: `${progress.overall}%` }}></div>
+                </div>
               </div>
-            </div>
             
             <div>
               <button
@@ -721,13 +721,16 @@ function MainFeature({ categoryId }) {
                   )}
                   
                   <div className="mb-4 mt-2">
+                    <div className="h-1.5 bg-surface-200 dark:bg-surface-700 rounded-full overflow-hidden">
                       <div 
                         className="h-full bg-primary rounded-full transition-all duration-500" 
                         style={{ width: `${progress.overall}%` }}
                       ></div>
                     </div>
                   </div>
-                  
+                </div>
+                
+                <div className="card relative">
                   <div className="flex flex-col space-y-3">
                     <div className="flex justify-between">
                       <span className="text-surface-600 dark:text-surface-400">Completed Lessons</span>
