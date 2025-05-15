@@ -122,7 +122,16 @@ function CreateCourse() {
         navigate('/');
       }, 1500);
     } catch (error) {
-      console.error('Error creating course:', error);
+      // Safely log error information without triggering TypeInfo reference error
+      console.error('Error creating course:', {
+        message: error?.message || 'Unknown error',
+        name: error?.name,
+        code: error?.code,
+        // Avoid logging the entire error object which may contain circular references
+        // that can trigger the TypeInfo reference error
+        stack: error?.stack,
+        details: typeof error === 'string' ? error : 'See browser console for complete details'
+      });
       toast.error('Failed to create course. Please try again.');
     } finally {
       setIsSubmitting(false);
