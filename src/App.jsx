@@ -7,11 +7,13 @@ import getIcon from './utils/iconUtils';
 // Pages
 import Home from './pages/Home';
 import NotFound from './pages/NotFound';
+import Progress from './pages/Progress';
 
 // Components
 const SunIcon = getIcon('Sun');
 const MoonIcon = getIcon('Moon');
 const BookOpenIcon = getIcon('BookOpen');
+const ChartIcon = getIcon('BarChart');
 
 function App() {
   const location = useLocation();
@@ -42,6 +44,15 @@ function App() {
             <span className="text-xl font-bold text-primary">EduSpark</span>
           </div>
           
+          <div className="hidden md:flex items-center space-x-6">
+            <a href="/" className="hover:text-primary transition-colors">Home</a>
+            <a href="/progress" className="flex items-center space-x-1 hover:text-primary transition-colors">
+              <ChartIcon className="h-4 w-4" />
+              <span>My Progress</span>
+            </a>
+          </div>
+          
+          
           <button 
             onClick={() => setDarkMode(!darkMode)}
             className="p-2 rounded-full bg-surface-100 dark:bg-surface-700 hover:bg-surface-200 dark:hover:bg-surface-600 transition-colors duration-200"
@@ -59,6 +70,7 @@ function App() {
         <AnimatePresence mode="wait">
           <Routes location={location} key={location.pathname}>
             <Route path="/" element={<Home />} />
+            <Route path="/progress" element={<Progress />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AnimatePresence>

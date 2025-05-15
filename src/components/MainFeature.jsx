@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-toastify';
 import getIcon from '../utils/iconUtils';
 
+import ProgressChart from './ProgressChart';
+
 // Icons
 const PlayIcon = getIcon('Play');
 const BookOpenIcon = getIcon('BookOpen');
@@ -15,6 +17,7 @@ const CheckCircleIcon = getIcon('CheckCircle');
 const XCircleIcon = getIcon('XCircle');
 const CheckIcon = getIcon('Check');
 const ChevronDownIcon = getIcon('ChevronDown');
+const BarChartIcon = getIcon('BarChart');
 const ChevronRightIcon = getIcon('ChevronRight');
 
 // Mock data for courses
@@ -179,6 +182,8 @@ function MainFeature({ categoryId }) {
   const [quizSubmitted, setQuizSubmitted] = useState(false);
   const [bookmarkedCourses, setBookmarkedCourses] = useState([]);
   const [quizResults, setQuizResults] = useState({ correct: 0, total: 0 });
+  const [courseProgress, setCourseProgress] = useState({});
+  const [showProgressDetails, setShowProgressDetails] = useState(false);
   const [expandedModule, setExpandedModule] = useState(null);
 
   useEffect(() => {
@@ -187,6 +192,21 @@ function MainFeature({ categoryId }) {
     setSelectedCourse(null);
     setCurrentQuiz(null);
     setQuizSubmitted(false);
+    
+    // Mock progress data for courses
+    const mockProgress = {};
+    coursesData[categoryId]?.forEach(course => {
+      mockProgress[course.id] = {
+        overall: Math.floor(Math.random() * 61), // 0-60% completion
+        lessons: Math.floor(Math.random() * 41), // 0-40% completed lessons
+        quizzes: Math.floor(Math.random() * 76), // 0-75% completed quizzes
+        lastAccessed: subDays(new Date(), Math.floor(Math.random() * 10)),
+        timeSpent: Math.floor(Math.random() * 120) + 15, // 15-135 minutes
+        streak: Math.floor(Math.random() * 8) // 0-7 day streak
+      };
+    });
+    
+    setCourseProgress(mockProgress);
   }, [categoryId]);
 
   const toggleBookmark = (courseId) => {
@@ -250,11 +270,27 @@ function MainFeature({ categoryId }) {
       setExpandedModule(moduleIndex);
     }
   };
+  
+  // Function to generate random historical progress data for charts
+  const generateProgressHistory = () => {
+    const dates = Array.from({ length: 7 }, (_, i) => subDays(new Date(), 6 - i).toISOString());
+    return {
+      categories: dates,
+      series: [{
+        name: 'Lessons Completed',
+        data: Array.from({ length: 7 }, () => Math.floor(Math.random() * 4)) // 0-3 lessons per day
+      }],
+      yTitle: 'Count'
+    };
+  };
 
   const renderCourseList = () => (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {courses.length > 0 ? (
-        courses.map(course => (
+        courses.map(course => {
+          const progress = courseProgress[course.id] || { overall: 0, lessons: 0, quizzes: 0 };
+          
+          return (
           <motion.div
             key={course.id}
             initial={{ opacity: 0, y: 20 }}
@@ -263,7 +299,7 @@ function MainFeature({ categoryId }) {
             className="card hover:shadow-lg group overflow-hidden"
           >
             <div className="relative mb-4 overflow-hidden rounded-lg aspect-video">
-              <img 
+              <img
                 src={course.thumbnail} 
                 alt={course.title} 
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
@@ -280,7 +316,12 @@ function MainFeature({ categoryId }) {
                     </div>
                   </div>
                 </div>
+              {/* Progress overlay */}
+              <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-surface-200/60 dark:bg-surface-700/60">
+                <div className="h-full bg-primary" style={{ width: `${progress.overall}%` }}></div>
               </div>
+              
+              <button
               <button 
                 className="absolute top-3 right-3 p-2 bg-white/20 backdrop-blur-sm rounded-full hover:bg-white/30 transition-colors"
                 onClick={(e) => {
@@ -313,6 +354,10 @@ function MainFeature({ categoryId }) {
                 <span>{course.enrolled.toLocaleString()} students</span>
               </div>
             </div>
+
+            {progress.overall > 0 && (
+              <p className="text-sm text-primary font-medium">{progress.overall}% completed</p>
+            )}
             
             <div className="flex items-center justify-between mt-4">
               <div className="text-sm font-medium text-surface-500 dark:text-surface-400">
@@ -327,7 +372,8 @@ function MainFeature({ categoryId }) {
               </button>
             </div>
           </motion.div>
-        ))
+          );
+        })
       ) : (
         <div className="col-span-full flex flex-col items-center justify-center py-16 text-center">
           <div className="bg-surface-100 dark:bg-surface-800 p-6 rounded-full mb-4">
@@ -345,6 +391,9 @@ function MainFeature({ categoryId }) {
   const renderCourseDetail = () => {
     if (!selectedCourse) return null;
 
+    // Get or generate mock progress data for the selected course
+    const progress = courseProgress[selectedCourse.id] || { overall: 0, lessons: 0, quizzes: 0 };
+
     const mockModules = Array.from({ length: selectedCourse.modules }, (_, i) => ({
       id: `module-${i}`,
       title: `Module ${i + 1}: ${i === 0 ? 'Introduction to ' + selectedCourse.title : 'Advanced Topic ' + (i + 1)}`,
@@ -352,8 +401,14 @@ function MainFeature({ categoryId }) {
         id: `lesson-${i}-${j}`,
         title: `Lesson ${j + 1}: ${j === 0 ? 'Getting Started' : 'Topic ' + (j + 1)}`,
         duration: `${Math.floor(Math.random() * 20) + 10} min`
-      }))
+      })),
+      // Random completion between 0-100% for each module
+      completion: i === 0 ? Math.min(Math.floor(Math.random() * 101) + progress.overall, 100) : 
+                  Math.max(0, Math.min(Math.floor(Math.random() * (100 - (3-i)*25)), 100))
     }));
+
+    // Generate random progress history data
+    const progressHistory = generateProgressHistory();
 
     return (
       <motion.div
@@ -641,15 +696,39 @@ function MainFeature({ categoryId }) {
                     </div>
                   </div>
                 </div>
-                
-                <div className="card">
+                <div className="card relative">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold">Your Progress</h3>
+                    <button 
+                      onClick={() => setShowProgressDetails(!showProgressDetails)}
+                      className="text-primary hover:text-primary-dark flex items-center text-sm"
+                    >
+                      {showProgressDetails ? "Hide Details" : "Show Details"}
+                      <BarChartIcon className="w-4 h-4 ml-1" />
+                    </button>
+                  </div>
+                  
+                  {showProgressDetails && (
+                    <div className="mb-6">
+                      <ProgressChart
+                        type="line"
+                        data={progressHistory}
+                        title="Learning Activity"
+                        height={200}
+                      />
+                    </div>
+                  )}
+                  
                   <h3 className="text-lg font-semibold mb-4">Your Progress</h3>
                   <div className="mb-4">
                     <div className="flex justify-between mb-2">
-                      <span className="text-sm font-medium">Overall Completion</span>
+                      <span className="text-sm font-medium">{progress.overall}%</span>
                       <span className="text-sm font-medium">0%</span>
                     </div>
-                    <div className="h-2 bg-surface-200 dark:bg-surface-700 rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-primary rounded-full transition-all duration-500" 
+                        style={{ width: `${progress.overall}%` }}
+                      ></div>
                       <div className="h-full bg-primary rounded-full" style={{ width: '0%' }}></div>
                     </div>
                   </div>
@@ -659,14 +738,47 @@ function MainFeature({ categoryId }) {
                       <span className="text-surface-600 dark:text-surface-400">Completed Lessons</span>
                       <span className="font-medium">0/{selectedCourse.lessons}</span>
                     </div>
+                    <div className="h-1.5 bg-surface-200 dark:bg-surface-700 rounded-full overflow-hidden mt-1 mb-3">
+                      <div 
+                        className="h-full bg-secondary rounded-full transition-all duration-500" 
+                        style={{ width: `${progress.lessons}%` }}
+                      ></div>
+                    </div>
                     <div className="flex justify-between">
                       <span className="text-surface-600 dark:text-surface-400">Quizzes Passed</span>
                       <span className="font-medium">0/{selectedCourse.quizzes ? selectedCourse.quizzes.length : '0'}</span>
+                    </div>
+                    <div className="h-1.5 bg-surface-200 dark:bg-surface-700 rounded-full overflow-hidden mt-1 mb-3">
+                      <div 
+                        className="h-full bg-accent rounded-full transition-all duration-500" 
+                        style={{ width: `${progress.quizzes}%` }}
+                      ></div>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-surface-600 dark:text-surface-400">Certificates</span>
                       <span className="font-medium">0/1</span>
                     </div>
+                    <div className="h-1.5 bg-surface-200 dark:bg-surface-700 rounded-full overflow-hidden mt-1 mb-3">
+                      <div 
+                        className="h-full bg-green-500 rounded-full transition-all duration-500" 
+                        style={{ width: `${progress.overall >= 100 ? 100 : 0}%` }}
+                      ></div>
+                    </div>
+                    
+                    {showProgressDetails && (
+                      <div className="mt-4 space-y-3 border-t border-surface-200 dark:border-surface-700 pt-4">
+                        <div className="flex justify-between">
+                          <span className="text-surface-600 dark:text-surface-400">Time Spent</span>
+                          <span className="font-medium">{progress.timeSpent} mins</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-surface-600 dark:text-surface-400">Current Streak</span>
+                          <span className="font-medium">{progress.streak} days</span>
+                        </div>
+                      </div>
+                    )}
+                    
+                    
                   </div>
                   
                   <button 
