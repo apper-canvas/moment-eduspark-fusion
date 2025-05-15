@@ -18,6 +18,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 // Lazy loaded pages
 const Progress = lazy(() => import('./pages/Progress'));
 const CourseDetails = lazy(() => import('./pages/CourseDetails'));
+const CreateCourse = lazy(() => import('./pages/CreateCourse'));
 const EnrollmentForm = lazy(() => import('./pages/EnrollmentForm'));
 
 
@@ -216,6 +217,20 @@ function App() {
                 <ProtectedRoute>
                   <Suspense fallback={<div className="flex justify-center items-center h-64">Loading...</div>}>
                     <CourseDetails />
+                  </Suspense>
+                </ProtectedRoute>
+              } />
+              <Route path="/enroll/:courseId" element={
+                <ProtectedRoute>
+                  <Suspense fallback={<div className="flex justify-center items-center h-64">Loading...</div>}>
+                    <EnrollmentForm />
+                  </Suspense>
+                </ProtectedRoute>
+              } />
+              <Route path="/create-course" element={
+                <ProtectedRoute>
+                  <Suspense fallback={<div className="flex justify-center items-center h-64">Loading...</div>}>
+                    <CreateCourse />
                   </Suspense>
                 </ProtectedRoute>
               } />
