@@ -321,7 +321,9 @@ function MainFeature({ categoryId }) {
               <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-surface-200/60 dark:bg-surface-700/60">
                 <div className="h-full bg-primary" style={{ width: `${progress.overall}%` }}></div>
               </div>
-              
+            </div>
+            
+            <div>
               <button
                 className="absolute top-3 right-3 p-2 bg-white/20 backdrop-blur-sm rounded-full hover:bg-white/30 transition-colors"
                 onClick={(e) => {
@@ -335,7 +337,6 @@ function MainFeature({ categoryId }) {
                   <BookmarkPlusIcon className="w-5 h-5 text-white" />
                 )}
               </button>
-            </div>
             
             <h3 className="text-xl font-semibold mb-2 line-clamp-2">{course.title}</h3>
             <p className="text-surface-600 dark:text-surface-400 mb-4 line-clamp-2">{course.description}</p>
@@ -719,13 +720,7 @@ function MainFeature({ categoryId }) {
                     </div>
                   )}
                   
-                  <h3 className="text-lg font-semibold mb-4">Your Progress</h3>
-                  <div className="mb-4">
-                    <div className="flex justify-between mb-2">
-                      <span className="text-sm font-medium">100%</span>
-                      <span className="text-sm font-medium">0%</span>
-                    </div>
-                    <div className="h-1.5 bg-surface-200 dark:bg-surface-700 rounded-full overflow-hidden">
+                  <div className="mb-4 mt-2">
                       <div 
                         className="h-full bg-primary rounded-full transition-all duration-500" 
                         style={{ width: `${progress.overall}%` }}
