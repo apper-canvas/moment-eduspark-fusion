@@ -109,12 +109,14 @@ function CreateCourse() {
       // Prepare data for submission
       const courseData = {
         ...formData,
-        rating: 0, // New courses start with 0 rating
-        students: 0, // New courses start with 0 students
-        Name: formData.title // Set Name field required by Apper
+        Name: formData.title, // Set Name field required by Apper
+        rating: 0,            // New courses start with 0 rating
+        students: 0,          // New courses start with 0 students
+        topics: formData.topics.join(','), // Convert array to comma-separated string for MultiPicklist
+        skills: formData.skills.join(','), // Convert array to comma-separated string for MultiPicklist
       };
       
-      await createCourse(courseData);
+      const response = await createCourse(courseData);
       toast.success('Course created successfully!');
       
       // Navigate back to home page after a delay
@@ -122,18 +124,17 @@ function CreateCourse() {
         navigate('/');
       }, 1500);
     } catch (error) {
-      // Safely log error information without triggering TypeInfo reference error
-      console.error('Error creating course:');
+      console.error('Error creating course:', error);
+
+      let errorMessage = 'Failed to create course';
       
-      // Log individual properties to avoid circular reference issues
-      if (error) {
-        if (error.message) console.error('Error message:', error.message);
-        if (error.name) console.error('Error name:', error.name);
-        if (error.code) console.error('Error code:', error.code);
-        if (error.stack) console.error('Stack trace:', error.stack);
+      // Extract more specific error message if available
+      if (error?.response?.data?.error) {
+        errorMessage += `: ${error.response.data.error}`;
+      } else if (error?.message) {
+        errorMessage += `: ${error.message}`;
       }
-      
-      toast.error(`Failed to create course: ${error?.message || 'Please try again'}`);
+      toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
     }

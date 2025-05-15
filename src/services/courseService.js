@@ -69,10 +69,21 @@ export const fetchCourseById = async (courseId) => {
 export const createCourse = async (courseData) => {
   try {
     const apperClient = getApperClient();
-    const response = await apperClient.createRecord("course", {
+    
+    // Create record with proper table format
+    const record = {
+      ...courseData,
+      Name: courseData.title || courseData.Name // Ensure Name field is set
+    };
+    
+    const response = await apperClient.createRecord("course", { 
       records: [courseData]
     });
-    return response.data;
+    
+    if (response && response.results && response.results.length > 0) {
+      return response.results[0].data;
+    }
+    return response;
   } catch (error) {
     console.error("Error creating course:", error);
     throw error;
