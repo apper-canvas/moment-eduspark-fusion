@@ -3,6 +3,15 @@ import Chart from 'react-apexcharts';
 import { format } from 'date-fns';
 
 const ProgressChart = ({ type, data, title, height = 350 }) => {
+  // Helper function to validate date objects
+  const isValidDate = (value) => {
+    if (!value) return false;
+    
+    const date = value instanceof Date ? value : new Date(value);
+    
+    return date instanceof Date && !isNaN(date.getTime());
+  };
+  
   const getChartOptions = () => {
     const baseOptions = {
       chart: {
@@ -120,7 +129,17 @@ const ProgressChart = ({ type, data, title, height = 350 }) => {
           categories: data.categories,
           labels: {
             formatter: function(value) {
-              return format(new Date(value), 'MMM d');
+              try {
+                // Check if value is a valid date or can be converted to one
+                if (isValidDate(value)) {
+                  const date = value instanceof Date ? value : new Date(value);
+                  return format(date, 'MMM d');
+                }
+                // Fall back to a simpler representation if not a valid date
+                return String(value).substring(0, 10);
+              } catch (error) {
+                return String(value).substring(0, 10);
+              }
             }
           }
         },
