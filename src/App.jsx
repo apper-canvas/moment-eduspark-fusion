@@ -8,6 +8,7 @@ import getIcon from './utils/iconUtils';
 import Home from './pages/Home';
 import NotFound from './pages/NotFound';
 import Progress from './pages/Progress';
+import CourseDetails from './pages/CourseDetails';
 
 // Components
 const SunIcon = getIcon('Sun');
@@ -71,6 +72,7 @@ function App() {
           <Routes location={location} key={location.pathname}>
             <Route path="/" element={<Home />} />
             <Route path="/progress" element={<Progress />} />
+            <Route path="/course/:courseId" element={<CourseDetails />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AnimatePresence>

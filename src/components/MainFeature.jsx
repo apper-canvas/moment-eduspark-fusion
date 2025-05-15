@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion'; 
 import { toast } from 'react-toastify';
 import getIcon from '../utils/iconUtils';
@@ -362,9 +363,11 @@ function MainFeature({ categoryId }) {
               )}
               
               <div className="flex items-center justify-between mt-4">
-                <div className="text-sm font-medium text-surface-500 dark:text-surface-400">
-                  Instructor: {course.instructor}
-                </div>
+              <Link 
+                to={`/course/${course.id}`}
+                className="mt-4 w-full py-2 bg-primary text-white rounded-lg hover:bg-primary-600 transition-colors flex items-center justify-center"
+                aria-label={`Learn more about ${course.title}`}
+              >
                 <button 
                   onClick={() => setSelectedCourse(course)}
                   className="btn btn-primary py-2 flex items-center"
