@@ -123,16 +123,17 @@ function CreateCourse() {
       }, 1500);
     } catch (error) {
       // Safely log error information without triggering TypeInfo reference error
-      console.error('Error creating course:', {
-        message: error?.message || 'Unknown error',
-        name: error?.name,
-        code: error?.code,
-        // Avoid logging the entire error object which may contain circular references
-        // that can trigger the TypeInfo reference error
-        stack: error?.stack,
-        details: typeof error === 'string' ? error : 'See browser console for complete details'
-      });
-      toast.error('Failed to create course. Please try again.');
+      console.error('Error creating course:');
+      
+      // Log individual properties to avoid circular reference issues
+      if (error) {
+        if (error.message) console.error('Error message:', error.message);
+        if (error.name) console.error('Error name:', error.name);
+        if (error.code) console.error('Error code:', error.code);
+        if (error.stack) console.error('Stack trace:', error.stack);
+      }
+      
+      toast.error(`Failed to create course: ${error?.message || 'Please try again'}`);
     } finally {
       setIsSubmitting(false);
     }
