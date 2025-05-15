@@ -13,6 +13,7 @@ export const createEnrollment = async (enrollmentData) => {
     const apperClient = getApperClient();
     const response = await apperClient.createRecord("enrollment", {
       records: [{
+        // Ensure we have a proper record name that identifies the enrollment
         Name: `${enrollmentData.firstName} ${enrollmentData.lastName} - ${enrollmentData.courseId}`,
         courseId: enrollmentData.courseId,
         firstName: enrollmentData.firstName,
@@ -26,6 +27,7 @@ export const createEnrollment = async (enrollmentData) => {
       }]
     });
     
+    // Return the created record data
     return response.data;
   } catch (error) {
     console.error("Error creating enrollment:", error);
@@ -99,6 +101,57 @@ export const fetchEnrollmentById = async (enrollmentId) => {
     return response.data;
   } catch (error) {
     console.error(`Error fetching enrollment with ID ${enrollmentId}:`, error);
+    throw error;
+  }
+};
+
+// Update an enrollment record
+export const updateEnrollment = async (enrollmentId, enrollmentData) => {
+  try {
+    const apperClient = getApperClient();
+    const response = await apperClient.updateRecord("enrollment", {
+      records: [{
+        Id: enrollmentId,
+        ...enrollmentData
+      }]
+    });
+    
+    return response.data;
+  } catch (error) {
+    console.error(`Error updating enrollment with ID ${enrollmentId}:`, error);
+    throw error;
+  }
+};
+
+// Check if a user is already enrolled in a course
+export const checkUserEnrollment = async (email, courseId) => {
+  try {
+    const apperClient = getApperClient();
+    
+    const params = {
+      where: [
+        {
+          fieldName: "email",
+          operator: "ExactMatch",
+          values: [email]
+        },
+        {
+          fieldName: "courseId",
+          operator: "ExactMatch",
+          values: [courseId]
+        }
+      ],
+      pagingInfo: {
+        limit: 1
+      }
+    };
+    
+    const response = await apperClient.fetchRecords("enrollment", params);
+    
+    // Return true if enrollment exists, false otherwise
+    return response.data && response.data.length > 0;
+  } catch (error) {
+    console.error(`Error checking enrollment for email ${email} and course ${courseId}:`, error);
     throw error;
   }
 };

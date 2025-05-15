@@ -1,111 +1,130 @@
-import React, { useState, useEffect, useContext } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { fetchCourses } from '../services/courseService';
+import { useSelector } from 'react-redux';
 import CourseCard from '../components/CourseCard';
+import { MainFeatureGrid } from '../components/MainFeature';
+import { fetchCourses } from '../services/courseService';
+import { fetchUserEnrollments } from '../services/enrollmentService';
+import { toast } from 'react-toastify';
 import getIcon from '../utils/iconUtils';
-import { AuthContext } from '../App';
 
-const PlusIcon = getIcon('Plus');
+// Icons
+const SearchIcon = getIcon('Search');
+const PlusCircleIcon = getIcon('PlusCircle');
 
-function Home() {
+const Home = () => {
   const [courses, setCourses] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [filters, setFilters] = useState({
-    level: '',
-    searchTerm: ''
-  });
-  const navigate = useNavigate();
-  const { isAuthenticated } = useContext(AuthContext);
+  const [userEnrollments, setUserEnrollments] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filter, setFilter] = useState('all');
+  const user = useSelector((state) => state.user.user);
 
   useEffect(() => {
-    const loadCourses = async () => {
+    const loadData = async () => {
       try {
-        setIsLoading(true);
-        const data = await fetchCourses(filters);
-        setCourses(data);
-        setError(null);
-      } catch (err) {
-        setError('Failed to load courses. Please try again later.');
-        console.error(err);
+        setLoading(true);
+        
+        // Load all courses
+        const courseData = await fetchCourses();
+        setCourses(courseData);
+        
+        // Load user enrollments if user is logged in
+        if (user && user.emailAddress) {
+          const enrollmentData = await fetchUserEnrollments(user.emailAddress);
+          setUserEnrollments(enrollmentData);
+        }
+      } catch (error) {
+        console.error("Error loading home data:", error);
+        toast.error("Failed to load courses");
       } finally {
-        setIsLoading(false);
+        setLoading(false);
       }
     };
+    
+    loadData();
+  }, [user]);
 
-    loadCourses();
-  }, [filters]);
+  const features = [
+    {
+      title: "Interactive Learning",
+      description: "Engage with dynamic content that makes learning enjoyable and effective.",
+      icon: "Video",
+      colorClass: "bg-primary text-white"
+    },
+    {
+      title: "Expert Instructors",
+      description: "Learn from industry professionals with real-world experience.",
+      icon: "Users",
+      colorClass: "bg-secondary text-white"
+    },
+    {
+      title: "Self-Paced Courses",
+      description: "Study at your own pace and on your own schedule.",
+      icon: "Clock",
+      colorClass: "bg-accent text-white"
+    }
+  ];
 
-  const handleSearchChange = (e) => {
-    setFilters(prev => ({
-      ...prev,
-      searchTerm: e.target.value
-    }));
-  };
-
-  const handleLevelChange = (e) => {
-    setFilters(prev => ({
-      ...prev,
-      level: e.target.value
-    }));
-  };
+  const filteredCourses = courses.filter(course => {
+    // Apply text search
+    const matchesSearch = !searchTerm || 
+                         course.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         course.description?.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    // Apply level filter
+    const matchesFilter = filter === 'all' || course.level === filter;
+    
+    return matchesSearch && matchesFilter;
+  });
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
-        <div>
-          <h1 className="text-3xl font-bold text-surface-900 dark:text-surface-50 mb-2">
-            Explore Courses
-          </h1>
-          <p className="text-surface-600 dark:text-surface-300">
-            Discover learning resources tailored to help you grow
-          </p>
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+    >
+      {/* Hero Section */}
+      <div className="bg-gradient-to-r from-primary to-secondary text-white py-16">
+        <div className="container mx-auto px-4">
+          <h1 className="text-4xl md:text-5xl font-bold mb-4">Expand Your Knowledge</h1>
+          <p className="text-xl md:text-2xl mb-8 max-w-2xl">Discover courses taught by industry experts and take your skills to the next level.</p>
+          <div className="flex flex-wrap gap-4">
+            <a href="#courses" className="bg-white text-primary px-6 py-3 rounded-lg font-medium hover:bg-surface-100 transition-colors">
+              Explore Courses
+            </a>
+            <Link to="/create-course" className="bg-primary-dark text-white px-6 py-3 rounded-lg font-medium hover:bg-opacity-90 transition-colors flex items-center">
+              <PlusCircleIcon className="w-5 h-5 mr-2" />
+              Create Course
+            </Link>
+          </div>
         </div>
-        {isAuthenticated && (
-          <button 
-            onClick={() => navigate('/create-course')}
-            className="btn btn-primary flex items-center mt-4 md:mt-0"
-          >
-            <PlusIcon className="w-5 h-5 mr-1" />
-            Create Course
-          </button>
+      </div>
+      
+      {/* Features Section */}
+      <div className="container mx-auto px-4 py-16">
+        <h2 className="text-3xl font-bold text-center mb-12 text-surface-900 dark:text-white">Why Choose EduSpark</h2>
+        <MainFeatureGrid features={features} />
+      </div>
+      
+      {/* Courses Section */}
+      <div id="courses" className="container mx-auto px-4 py-16">
+        <h2 className="text-3xl font-bold mb-8 text-surface-900 dark:text-white">Available Courses</h2>
+        
+        {loading ? (
+          <div className="flex justify-center items-center h-64">
+            <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {filteredCourses.map(course => (
+              <CourseCard key={course.Id} course={course} />
+            ))}
+          </div>
         )}
       </div>
-
-      <div className="mb-8 grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <input
-            type="text"
-            placeholder="Search courses..."
-            className="input-field"
-            value={filters.searchTerm}
-            onChange={handleSearchChange}
-          />
-        </div>
-        <div>
-          <select 
-            className="input-field"
-            value={filters.level}
-            onChange={handleLevelChange}
-          >
-            <option value="">All Levels</option>
-            <option value="Beginner">Beginner</option>
-            <option value="Intermediate">Intermediate</option>
-            <option value="Advanced">Advanced</option>
-            <option value="All Levels">All Levels</option>
-          </select>
-        </div>
-      </div>
-
-      {isLoading && <div className="text-center py-10">Loading courses...</div>}
-      {error && <div className="text-center py-10 text-red-500">{error}</div>}
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {courses.map(course => <CourseCard key={course.Id} course={course} />)}
-      </div>
-    </div>
+    </motion.div>
   );
-}
-
+};
 export default Home;

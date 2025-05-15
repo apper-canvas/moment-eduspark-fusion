@@ -37,6 +37,7 @@ const EnrollmentForm = () => {
   });
   const [errors, setErrors] = useState({});
 
+  // Load course data and prefill form with user info if available
   useEffect(() => {
     const loadCourse = async () => {
       try {
@@ -108,8 +109,9 @@ const EnrollmentForm = () => {
       try {
         setSubmitting(true);
         
-        // Create enrollment record
+        // Create enrollment record with all required fields
         const enrollmentData = {
+          Name: `${formData.firstName} ${formData.lastName} - Course ${courseId}`,
           ...formData,
           courseId: parseInt(courseId)
         };
@@ -130,7 +132,7 @@ const EnrollmentForm = () => {
         
         toast.success(`You've been enrolled in ${course.title}!`);
         // Redirect to course details after a short delay
-        setTimeout(() => {
+        setTimeout(() => { 
           navigate(`/course/${courseId}`);
         }, 2000);
       } catch (error) {

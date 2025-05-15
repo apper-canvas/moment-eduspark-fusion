@@ -1,90 +1,52 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
 import getIcon from '../utils/iconUtils';
 
+// Icons
 const StarIcon = getIcon('Star');
 const UsersIcon = getIcon('Users');
 const ClockIcon = getIcon('Clock');
 
 const CourseCard = ({ course }) => {
-  const navigate = useNavigate();
+  // Default image if none provided
+  const defaultImage = "https://images.unsplash.com/photo-1517694712202-14dd9538aa97";
   
-  // Handle missing data with fallback values
-  const {
-    Id = 0,
-    title = 'Untitled Course',
-    instructor = 'Unknown Instructor',
-    level = 'All Levels',
-    duration = 'Self-paced',
-    rating = 0,
-    students = 0,
-    price = 0,
-    image = 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80',
-    description = 'No description available'
-  } = course;
-
-  // Function to get level badge color
-  const getLevelColor = () => {
-    switch (level) {
-      case 'Beginner':
-        return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
-      case 'Intermediate':
-        return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
-      case 'Advanced':
-        return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200';
-      default:
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200';
-    }
-  };
-
-  // Format price to display as currency
-  const formatPrice = (price) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 2
-    }).format(price);
-  };
-
   return (
-    <motion.div
-      whileHover={{ y: -5, transition: { duration: 0.2 } }}
-      className="card h-full flex flex-col overflow-hidden cursor-pointer"
-      onClick={() => navigate(`/course/${Id}`)}
-    >
-      <div className="relative mb-4 overflow-hidden rounded-lg">
+    <div className="group bg-white dark:bg-surface-800 rounded-xl shadow-card overflow-hidden transition-all duration-300 hover:shadow-lg">
+      <div className="relative">
         <img 
-          src={image} 
-          alt={title} 
-          className="w-full h-48 object-cover transition-transform duration-300 hover:scale-105"
+          src={course.image || defaultImage}
+          alt={course.title} 
+          className="w-full h-40 object-cover transition-transform duration-300 group-hover:scale-105"
         />
-        <span className={`absolute top-2 right-2 py-1 px-2 rounded-md text-xs font-medium ${getLevelColor()}`}>
-          {level}
-        </span>
-      </div>
-      
-      <h3 className="text-xl font-semibold mb-2 text-surface-900 dark:text-surface-50">{title}</h3>
-      <p className="text-surface-600 dark:text-surface-300 mb-2">{instructor}</p>
-      <p className="text-surface-600 dark:text-surface-400 text-sm mb-4 line-clamp-2">{description}</p>
-      
-      <div className="flex items-center justify-between text-sm mt-auto">
-        <div className="flex items-center">
-          <StarIcon className="w-4 h-4 text-yellow-400 mr-1" />
-          <span className="text-surface-800 dark:text-surface-200">{rating.toFixed(1)}</span>
-        </div>
-        <div className="flex items-center">
-          <UsersIcon className="w-4 h-4 text-surface-500 dark:text-surface-400 mr-1" />
-          <span className="text-surface-600 dark:text-surface-300">{students}</span>
-        </div>
-        <div className="flex items-center">
-          <ClockIcon className="w-4 h-4 text-surface-500 dark:text-surface-400 mr-1" />
-          <span className="text-surface-600 dark:text-surface-300">{duration}</span>
+        <div className="absolute top-3 right-3 bg-white dark:bg-surface-700 rounded-full px-2 py-1 text-xs font-medium flex items-center shadow-sm">
+          <StarIcon className="h-3 w-3 text-yellow-400 mr-1" />
+          <span>{course.rating || '4.5'}</span>
         </div>
       </div>
-      <div className="mt-4 font-semibold text-lg text-surface-900 dark:text-surface-50">{formatPrice(price)}</div>
-    </motion.div>
+      
+      <div className="p-5">
+        <div className="flex items-center mb-2">
+          <span className="text-xs font-medium px-2 py-1 bg-primary/10 text-primary rounded-full">{course.level}</span>
+        </div>
+        
+        <h3 className="text-lg font-semibold mb-2 text-surface-900 dark:text-white">{course.title}</h3>
+        <p className="text-sm text-surface-600 dark:text-surface-400 mb-3 line-clamp-2">{course.description}</p>
+        
+        <div className="flex text-xs text-surface-500 dark:text-surface-400 mb-4">
+          <div className="flex items-center mr-3">
+            <ClockIcon className="h-3 w-3 mr-1" />
+            <span>{course.duration}</span>
+          </div>
+          <div className="flex items-center">
+            <UsersIcon className="h-3 w-3 mr-1" />
+            <span>{course.students?.toLocaleString() || "10,000+"} students</span>
+          </div>
+        </div>
+        
+        <Link to={`/course/${course.Id}`} className="block w-full text-center py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors">View Course</Link>
+      </div>
+    </div>
   );
 };
-
 export default CourseCard;
