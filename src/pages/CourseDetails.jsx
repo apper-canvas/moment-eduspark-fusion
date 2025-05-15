@@ -59,9 +59,12 @@ const CourseDetails = () => {
           }
         }
       } catch (err) {
-        setError('Failed to load course details');
-        toast.error(`Error loading course details: ${err.message || 'Unknown error'}`);
-        console.error('Error loading course details:', err);
+        const errorMessage = err?.message || 'Unknown error occurred';
+        setError('Failed to load course details: ' + errorMessage);
+        
+        // Safe error logging without relying on TypeInfo
+        console.error('Error loading course details:', errorMessage);
+        toast.error(`Error loading course details: ${errorMessage}`);
       } finally { 
         setLoading(false);
       }
