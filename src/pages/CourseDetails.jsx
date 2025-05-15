@@ -62,7 +62,7 @@ const CourseDetails = () => {
       } catch (err) {
         setError('Failed to load course details');
         toast.error('Failed to load course details');
-        console.error('Error loading course:', err);
+        console.error('Error loading course details:', err.message || 'Unknown error occurred');
       } finally {
         setLoading(false);
       }
