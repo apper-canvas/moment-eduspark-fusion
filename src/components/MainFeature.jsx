@@ -322,8 +322,9 @@ function MainFeature({ categoryId }) {
                   <div className="h-full bg-primary" style={{ width: `${progress.overall}%` }}></div>
                 </div>
               </div>
+             </div>
             
-            <div>
+             <div>
               <button
                 className="absolute top-3 right-3 p-2 bg-white/20 backdrop-blur-sm rounded-full hover:bg-white/30 transition-colors"
                 onClick={(e) => {
@@ -337,40 +338,41 @@ function MainFeature({ categoryId }) {
                   <BookmarkPlusIcon className="w-5 h-5 text-white" />
                 )}
               </button>
-            
-            <h3 className="text-xl font-semibold mb-2 line-clamp-2">{course.title}</h3>
-            <p className="text-surface-600 dark:text-surface-400 mb-4 line-clamp-2">{course.description}</p>
-            
-            <div className="flex flex-wrap gap-y-2 text-sm text-surface-600 dark:text-surface-400 mb-4">
-              <div className="flex items-center mr-4">
-                <ClockIcon className="w-4 h-4 mr-1" />
-                <span>{course.duration}</span>
+             
+              <h3 className="text-xl font-semibold mb-2 line-clamp-2">{course.title}</h3>
+              <p className="text-surface-600 dark:text-surface-400 mb-4 line-clamp-2">{course.description}</p>
+              
+              <div className="flex flex-wrap gap-y-2 text-sm text-surface-600 dark:text-surface-400 mb-4">
+                <div className="flex items-center mr-4">
+                  <ClockIcon className="w-4 h-4 mr-1" />
+                  <span>{course.duration}</span>
+                </div>
+                <div className="flex items-center mr-4">
+                  <BookOpenIcon className="w-4 h-4 mr-1" />
+                  <span>{course.lessons} lessons</span>
+                </div>
+                <div className="flex items-center">
+                  <UsersIcon className="w-4 h-4 mr-1" />
+                  <span>{course.enrolled.toLocaleString()} students</span>
+                </div>
               </div>
-              <div className="flex items-center mr-4">
-                <BookOpenIcon className="w-4 h-4 mr-1" />
-                <span>{course.lessons} lessons</span>
-              </div>
-              <div className="flex items-center">
-                <UsersIcon className="w-4 h-4 mr-1" />
-                <span>{course.enrolled.toLocaleString()} students</span>
-              </div>
-            </div>
 
-            {progress.overall > 0 && (
-              <p className="text-sm text-primary font-medium">{progress.overall}% completed</p>
-            )}
-            
-            <div className="flex items-center justify-between mt-4">
-              <div className="text-sm font-medium text-surface-500 dark:text-surface-400">
-                Instructor: {course.instructor}
+              {progress.overall > 0 && (
+                <p className="text-sm text-primary font-medium">{progress.overall}% completed</p>
+              )}
+              
+              <div className="flex items-center justify-between mt-4">
+                <div className="text-sm font-medium text-surface-500 dark:text-surface-400">
+                  Instructor: {course.instructor}
+                </div>
+                <button 
+                  onClick={() => setSelectedCourse(course)}
+                  className="btn btn-primary py-2 flex items-center"
+                >
+                  <PlayIcon className="w-4 h-4 mr-2" />
+                  Start Learning
+                </button>
               </div>
-              <button 
-                onClick={() => setSelectedCourse(course)}
-                className="btn btn-primary py-2 flex items-center"
-              >
-                <PlayIcon className="w-4 h-4 mr-2" />
-                Start Learning
-              </button>
             </div>
           </motion.div>
           );
@@ -727,6 +729,9 @@ function MainFeature({ categoryId }) {
                         style={{ width: `${progress.overall}%` }}
                       ></div>
                     </div>
+                    <p className="text-sm text-surface-500 dark:text-surface-400 mt-2 text-center">
+                      {progress.overall}% overall completion
+                    </p>
                   </div>
                 </div>
                 
