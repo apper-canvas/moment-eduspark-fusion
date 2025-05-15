@@ -363,18 +363,19 @@ function MainFeature({ categoryId }) {
               )}
               
               <div className="flex items-center justify-between mt-4">
-              <Link 
-                to={`/course/${course.id}`}
-                className="mt-4 w-full py-2 bg-primary text-white rounded-lg hover:bg-primary-600 transition-colors flex items-center justify-center"
-                aria-label={`Learn more about ${course.title}`}
-              >
-                <button 
-                  onClick={() => setSelectedCourse(course)}
-                  className="btn btn-primary py-2 flex items-center"
+                <Link 
+                  to={`/course/${course.id}`}
+                  className="mt-4 w-full py-2 bg-primary text-white rounded-lg hover:bg-primary-600 transition-colors flex items-center justify-center"
+                  aria-label={`Learn more about ${course.title}`}
                 >
-                  <PlayIcon className="w-4 h-4 mr-2" />
-                  Start Learning
-                </button>
+                  <button 
+                    onClick={() => setSelectedCourse(course)}
+                    className="btn btn-primary py-2 flex items-center"
+                  >
+                    <PlayIcon className="w-4 h-4 mr-2" />
+                    Start Learning
+                  </button>
+                </Link>
               </div>
             </div>
           </motion.div>
