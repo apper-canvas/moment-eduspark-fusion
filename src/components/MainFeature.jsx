@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion'; 
 import { toast } from 'react-toastify';
 import getIcon from '../utils/iconUtils';
+import { subDays } from 'date-fns';
 
 import ProgressChart from './ProgressChart';
 
@@ -322,7 +323,6 @@ function MainFeature({ categoryId }) {
               </div>
               
               <button
-              <button 
                 className="absolute top-3 right-3 p-2 bg-white/20 backdrop-blur-sm rounded-full hover:bg-white/30 transition-colors"
                 onClick={(e) => {
                   e.stopPropagation();
@@ -722,14 +722,14 @@ function MainFeature({ categoryId }) {
                   <h3 className="text-lg font-semibold mb-4">Your Progress</h3>
                   <div className="mb-4">
                     <div className="flex justify-between mb-2">
-                      <span className="text-sm font-medium">{progress.overall}%</span>
+                      <span className="text-sm font-medium">100%</span>
                       <span className="text-sm font-medium">0%</span>
                     </div>
+                    <div className="h-1.5 bg-surface-200 dark:bg-surface-700 rounded-full overflow-hidden">
                       <div 
                         className="h-full bg-primary rounded-full transition-all duration-500" 
                         style={{ width: `${progress.overall}%` }}
                       ></div>
-                      <div className="h-full bg-primary rounded-full" style={{ width: '0%' }}></div>
                     </div>
                   </div>
                   
