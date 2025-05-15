@@ -8,6 +8,7 @@ import getIcon from '../utils/iconUtils';
 const ArrowLeftIcon = getIcon('ArrowLeft');
 const PlusIcon = getIcon('Plus');
 const CheckIcon = getIcon('Check');
+const UserIcon = getIcon('User');
 const InfoIcon = getIcon('Info');
 const ImageIcon = getIcon('Image');
 const BookOpenIcon = getIcon('BookOpen');
@@ -496,7 +497,7 @@ function CreateCourse() {
                               ? 'bg-primary text-white shadow-md transform scale-105'
                               : 'bg-white dark:bg-surface-700 text-surface-700 dark:text-surface-300 hover:bg-surface-200 dark:hover:bg-surface-600 border border-surface-200 dark:border-surface-600'
                           }`}
-                          {topic}
+                        >
                         </div>
                       ))}
                     </div>
@@ -614,7 +615,7 @@ function CreateCourse() {
               {formData.price && (
                 <div className="text-xl font-bold text-primary">
                   ${parseFloat(formData.price).toFixed(2)}
-                {isSubmitting ? 'Creating...' : 'Create Course'}
+                </div>
               )}
               
               <div className="flex flex-wrap gap-1">
@@ -631,7 +632,7 @@ function CreateCourse() {
               </div>
             </div>
           </div>
-        </form>
+        </div>
       </div>
     </div>
   );
