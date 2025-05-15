@@ -1,4 +1,5 @@
-import { createContext, useState, useEffect } from 'react';
+import React, { createContext, useState, useEffect } from 'react';
+import { lazy, Suspense } from 'react';
 import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import { useDispatch, useSelector } from 'react-redux';
@@ -13,6 +14,12 @@ import Signup from './pages/Signup';
 import Callback from './pages/Callback';
 import ErrorPage from './pages/ErrorPage';
 import ProtectedRoute from './components/ProtectedRoute';
+
+// Lazy loaded pages
+const Progress = lazy(() => import('./pages/Progress'));
+const CourseDetails = lazy(() => import('./pages/CourseDetails'));
+const EnrollmentForm = lazy(() => import('./pages/EnrollmentForm'));
+
 
 // Components
 const SunIcon = getIcon('Sun');
@@ -200,17 +207,23 @@ function App() {
               } />
               <Route path="/progress" element={
                 <ProtectedRoute>
-                  <React.lazy(() => import('./pages/Progress')) />
+                  <Suspense fallback={<div className="flex justify-center items-center h-64">Loading...</div>}>
+                    <Progress />
+                  </Suspense>
                 </ProtectedRoute>
               } />
               <Route path="/course/:courseId" element={
                 <ProtectedRoute>
-                  <React.lazy(() => import('./pages/CourseDetails')) />
+                  <Suspense fallback={<div className="flex justify-center items-center h-64">Loading...</div>}>
+                    <CourseDetails />
+                  </Suspense>
                 </ProtectedRoute>
               } />
               <Route path="/enroll/:courseId" element={
                 <ProtectedRoute>
-                  <React.lazy(() => import('./pages/EnrollmentForm')) />
+                  <Suspense fallback={<div className="flex justify-center items-center h-64">Loading...</div>}>
+                    <EnrollmentForm />
+                  </Suspense>
                 </ProtectedRoute>
               } />
               <Route path="*" element={<NotFound />} />
