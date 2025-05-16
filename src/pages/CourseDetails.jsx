@@ -203,13 +203,13 @@ const CourseDetails = () => {
               <h3 className="font-semibold text-surface-900 dark:text-white mb-3">What you'll learn</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                 {course.topics ? (
-                  typeof course.topics === 'string' ? course.topics.split(',').map((topic, index) => (
+                  typeof course.topics === 'string' ? (
+                    course.topics.split(',').map((topic, index) => (
                     <div key={index} className="flex items-center text-sm text-surface-600 dark:text-surface-300">
                       <BookIcon className="w-4 h-4 mr-2 text-primary" />
                       {topic.trim()}
                     </div>
-                  )) : <p className="text-surface-500">Topics data format error</p>
-                )) : <p className="text-surface-500">Topics not available</p>}
+                  ))) : (<p className="text-surface-500">Topics data format error</p>)) : (<p className="text-surface-500">Topics not available</p>)}
               </div>
             </div>
             
