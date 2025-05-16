@@ -57,10 +57,15 @@ export const fetchCourses = async (filters = {}, page = 1, limit = 10) => {
 export const fetchCourseById = async (courseId) => {
   try {
     const apperClient = getApperClient();
-    const response = await apperClient.getRecordById("course", courseId);
-    return response.data;
+    if (!courseId) {
+      throw new Error("Course ID is required");
+    }
+    
+    const response = await apperClient.getRecordById("course", Number(courseId));
+    return response && response.data ? response.data : null;
   } catch (error) {
     console.error(`Error fetching course with ID ${courseId}:`, error);
+    error.message = `Failed to fetch course: ${error.message || 'Unknown error'}`;
     throw error;
   }
 };

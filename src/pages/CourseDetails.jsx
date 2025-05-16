@@ -30,7 +30,7 @@ const CourseDetails = () => {
       try {
         setLoading(true);
         
-        // Load course details
+        // Load course details with error handling
         const courseData = await fetchCourseById(courseId);
         if (!courseData) {
           setError('Course not found');
@@ -59,12 +59,13 @@ const CourseDetails = () => {
           }
         }
       } catch (err) {
-        const errorMessage = err?.message || 'Failed to load course data';
-        setError(`Failed to load course details: ${errorMessage}`);
+        console.error('Error loading course details:', err);
+        const errorMessage = err?.message || 'Unknown error occurred';
+        setError(errorMessage);
         
-        // Safely log the error without using any undefined objects
-        console.error('Error loading course details:', JSON.stringify(err, Object.getOwnPropertyNames(err)));
-        toast.error(`Error loading course details: ${errorMessage}`);
+        // Show error toast with appropriate message
+        toast.error('Error loading course details. Please try again later.');
+        
       } finally {
         setLoading(false);
       }
@@ -124,9 +125,12 @@ const CourseDetails = () => {
   if (!course || error) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <div className="text-center">
+        <div className="text-center bg-white dark:bg-surface-800 rounded-xl shadow-md p-8">
           <h1 className="text-2xl font-bold mb-4">Course Not Found</h1>
-          <p className="mb-6">We couldn't find the course you're looking for.</p>
+          <p className="mb-6 text-surface-600 dark:text-surface-300">
+            {error || "We couldn't find the course you're looking for."}
+          </p>
+          
           <Link to="/" className="inline-flex items-center px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-600 transition-colors">
             <ArrowLeftIcon className="w-4 h-4 mr-2" />
             Back to Courses
@@ -154,19 +158,19 @@ const CourseDetails = () => {
             <img className="h-48 w-full object-cover md:h-full" src={course.image || "https://images.unsplash.com/photo-1517694712202-14dd9538aa97"} alt={course.title} />
           </div>
           <div className="p-8 md:w-2/3">
-            <div className="flex items-center">
-              <span className="bg-primary-100 text-primary text-xs px-2 py-1 rounded-full uppercase font-semibold tracking-wide">{course.level}</span>
+            <div className="flex items-center flex-wrap gap-2">
+              <span className="bg-surface-100 text-primary text-xs px-2 py-1 rounded-full uppercase font-semibold tracking-wide">{course.level || 'All Levels'}</span>
               <div className="ml-2 text-xs text-surface-500 dark:text-surface-400 flex items-center">
                 <ClockIcon className="w-3 h-3 mr-1" />
-                {course.duration}
+                {course.duration || 'Not specified'}
               </div>
               <div className="ml-2 text-xs text-surface-500 dark:text-surface-400 flex items-center">
                 <UserIcon className="w-3 h-3 mr-1" />
-                {course.students ? course.students.toLocaleString() : "10,000+"} students
+                {(course.students || course.students === 0) ? course.students.toLocaleString() : "10,000+"} students
               </div>
             </div>
             
-            <h1 className="mt-2 text-2xl font-bold text-surface-900 dark:text-white">{course.title}</h1>
+            <h1 className="mt-2 text-2xl font-bold text-surface-900 dark:text-white">{course.title || course.Name || 'Untitled Course'}</h1>
             
             <div className="mt-2 flex items-center">
               <img className="h-10 w-10 rounded-full mr-2" src={`https://ui-avatars.com/api/?name=${encodeURIComponent(course.instructor)}&background=random`} alt={course.instructor} />
@@ -198,11 +202,13 @@ const CourseDetails = () => {
             <div className="mt-6 border-t border-surface-200 dark:border-surface-700 pt-4">
               <h3 className="font-semibold text-surface-900 dark:text-white mb-3">What you'll learn</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                {course.topics ? course.topics.split(',').map((topic, index) => (
-                  <div key={index} className="flex items-center text-sm text-surface-600 dark:text-surface-300">
-                    <BookIcon className="w-4 h-4 mr-2 text-primary" />
-                    {topic.trim()}
-                  </div>
+                {course.topics ? (
+                  typeof course.topics === 'string' ? course.topics.split(',').map((topic, index) => (
+                    <div key={index} className="flex items-center text-sm text-surface-600 dark:text-surface-300">
+                      <BookIcon className="w-4 h-4 mr-2 text-primary" />
+                      {topic.trim()}
+                    </div>
+                  )) : <p className="text-surface-500">Topics data format error</p>
                 )) : <p className="text-surface-500">Topics not available</p>}
               </div>
             </div>
@@ -210,9 +216,11 @@ const CourseDetails = () => {
             <div className="mt-6 border-t border-surface-200 dark:border-surface-700 pt-4">
               <h3 className="font-semibold text-surface-900 dark:text-white mb-3">Skills you'll gain</h3>
               <div className="flex flex-wrap gap-2">
-                {course.skills ? course.skills.split(',').map((skill, index) => (
-                  <span key={index} className="bg-surface-100 dark:bg-surface-700 text-surface-800 dark:text-surface-300 text-xs px-3 py-1 rounded-full flex items-center"><TagIcon className="w-3 h-3 mr-1" />{skill.trim()}</span>
-                )) : <p className="text-surface-500">Skills not available</p>}
+                {course.skills ? (
+                  typeof course.skills === 'string' ? course.skills.split(',').map((skill, index) => (
+                    <span key={index} className="bg-surface-100 dark:bg-surface-700 text-surface-800 dark:text-surface-300 text-xs px-3 py-1 rounded-full flex items-center"><TagIcon className="w-3 h-3 mr-1" />{skill.trim()}</span>
+                  )) : <p className="text-surface-500">Skills data format error</p>
+                ) : <p className="text-surface-500">Skills not available</p>}
               </div>
             </div>
             
