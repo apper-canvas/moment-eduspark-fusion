@@ -59,13 +59,17 @@ const CourseDetails = () => {
           }
         }
       } catch (err) {
-        console.error('Error loading course details:', err);
-        // Safely handle the error without relying on TypeInfo
-        const errorMessage = typeof err === 'object' && err !== null ? (err.message || 'Unknown error') : String(err || 'Unknown error');
+        // Avoid direct console.error which might use the problematic logging enhancement
+        // Instead, log error as a string to avoid TypeInfo reference
+        const errString = typeof err === 'object' && err !== null 
+          ? JSON.stringify(err, Object.getOwnPropertyNames(err)) 
+          : String(err);
+        
+        // Log to console in a way that doesn't trigger the problematic logger
+        console.log('Error loading course details:', errString);
+        
+        const errorMessage = err?.message || 'Unknown error loading course details';
         setError(errorMessage);
-        
-        toast.error(`Error loading course details: ${errorMessage.includes('Unknown') ? 'Please try again later.' : errorMessage}`);
-        
       } finally {
         setLoading(false);
       }
