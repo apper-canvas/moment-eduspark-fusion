@@ -60,11 +60,11 @@ const CourseDetails = () => {
         }
       } catch (err) {
         console.error('Error loading course details:', err);
-        const errorMessage = err?.message || 'Unknown error occurred';
+        // Safely handle the error without relying on TypeInfo
+        const errorMessage = typeof err === 'object' && err !== null ? (err.message || 'Unknown error') : String(err || 'Unknown error');
         setError(errorMessage);
         
-        // Show error toast with appropriate message
-        toast.error('Error loading course details. Please try again later.');
+        toast.error(`Error loading course details: ${errorMessage.includes('Unknown') ? 'Please try again later.' : errorMessage}`);
         
       } finally {
         setLoading(false);
